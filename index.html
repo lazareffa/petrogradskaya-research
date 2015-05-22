@@ -12,6 +12,7 @@
 	<link rel="stylesheet" href="css/label.css" />
 	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script> <!-- this is the javascript file that does the magic-->
 	<script src="js/Autolinker.min.js"></script>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 </head>
 <body>
 	<div id="map"></div> <!-- this is the initial look of the map. in most cases it is done externally using something like a map.css stylesheet were you can specify the look of map elements, like background color tables and so on.-->
@@ -20,46 +21,48 @@
 	<script src="js/label.js"></script>
 	<script src="js/leaflet.markercluster.js"></script>
 	
-				<script src='data/exp_buildingpolygon.js' ></script>
+				<script src='data/exp_SportObjects.js' ></script>
 				
 	<script>
-		var map = L.map('map', { zoomControl:true });
+		var map = L.map('map', { zoomControl:true }).fitBounds([[59.9436486573,30.2487417033],[59.9818291507,30.375331166]]);
 		var hash = new L.Hash(map); //add hashes to html address to easy share locations
-		var additional_attrib = 'created with <a href="https://github.com/geolicious/qgis2leaf" target ="_blank">qgis2leaf</a> by <a href="http://www.geolicious.de" target ="_blank">Geolicious</a> & contributors<br>';
+		var additional_attrib = 'created w. <a href="https://github.com/geolicious/qgis2leaf" target ="_blank">qgis2leaf</a> by <a href="http://www.geolicious.de" target ="_blank">Geolicious</a> & contributors<br>';
 	var feature_group = new L.featureGroup([]);
 
 	var raster_group = new L.LayerGroup([]);
 	
-		var basemap_0 = L.tileLayer('http://{s}.tile.openweathermap.org/map/snow/{z}/{x}/{y}.png', { 
-			attribution: additional_attrib + 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>'});	
+		var basemap_0 = L.tileLayer('http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png', { 
+			attribution: additional_attrib + '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'});	
 		basemap_0.addTo(map);	
 	var layerOrder=new Array();
-							function pop_buildingpolygon(feature, layer) {
+							function pop_SportObjects(feature, layer) {
 										
-	var popupContent = '<table><tr><th scope="row">OSM_ID</th><td>' + Autolinker.link(String(feature.properties['OSM_ID'])) + '</td></tr><tr><th scope="row">BUILDING</th><td>' + Autolinker.link(String(feature.properties['BUILDING'])) + '</td></tr><tr><th scope="row">A_STRT</th><td>' + Autolinker.link(String(feature.properties['A_STRT'])) + '</td></tr><tr><th scope="row">A_SBRB</th><td>' + Autolinker.link(String(feature.properties['A_SBRB'])) + '</td></tr><tr><th scope="row">A_HSNMBR</th><td>' + Autolinker.link(String(feature.properties['A_HSNMBR'])) + '</td></tr><tr><th scope="row">B_LEVELS</th><td>' + Autolinker.link(String(feature.properties['B_LEVELS'])) + '</td></tr><tr><th scope="row">NAME</th><td>' + Autolinker.link(String(feature.properties['NAME'])) + '</td></tr></table>';
+	var popupContent = '<table><tr><th scope="row">n</th><td>' + Autolinker.link(String(feature.properties['n'])) + '</td></tr><tr><th scope="row">name</th><td>' + Autolinker.link(String(feature.properties['name'])) + '</td></tr><tr><th scope="row">y</th><td>' + Autolinker.link(String(feature.properties['y'])) + '</td></tr><tr><th scope="row">x</th><td>' + Autolinker.link(String(feature.properties['x'])) + '</td></tr><tr><th scope="row">type</th><td>' + Autolinker.link(String(feature.properties['type'])) + '</td></tr><tr><th scope="row">acsess</th><td>' + Autolinker.link(String(feature.properties['acsess'])) + '</td></tr><tr><th scope="row">new_adress</th><td>' + Autolinker.link(String(feature.properties['new_adress'])) + '</td></tr><tr><th scope="row">school</th><td>' + Autolinker.link(String(feature.properties['school'])) + '</td></tr><tr><th scope="row">stadion</th><td>' + Autolinker.link(String(feature.properties['stadion'])) + '</td></tr></table>';
 	layer.bindPopup(popupContent);
 
 
 				}
 						
-				var exp_buildingpolygonJSON = new L.geoJson(exp_buildingpolygon,{
-					onEachFeature: pop_buildingpolygon,
-					style: function (feature) {
-						return {color: feature.properties.border_color_qgis2leaf,
-								fillColor: feature.properties.color_qgis2leaf,
-								weight: feature.properties.radius_qgis2leaf,
-								opacity: feature.properties.transp_qgis2leaf,
-								fillOpacity: feature.properties.transp_qgis2leaf};
+				var exp_SportObjectsJSON = new L.geoJson(exp_SportObjects,{
+					onEachFeature: pop_SportObjects,
+					pointToLayer: function (feature, latlng) {  
+						return L.circleMarker(latlng, {
+							radius: feature.properties.radius_qgis2leaf,
+							fillColor: feature.properties.color_qgis2leaf,
+
+							color: feature.properties.borderColor_qgis2leaf,
+							weight: 1,
+							opacity: feature.properties.transp_qgis2leaf,
+							fillOpacity: feature.properties.transp_qgis2leaf
+							}).bindLabel(feature.properties.stadion, {noHide: true})
 						}
 					});
-				feature_group.addLayer(exp_buildingpolygonJSON);
-				layerOrder[layerOrder.length] = exp_buildingpolygonJSON;
-				for (index = 0; index < layerOrder.length; index++) {
-					map.removeLayer(layerOrder[index]);map.addLayer(layerOrder[index]);
-				}
+				
+				var cluster_groupSportObjectsJSON= new L.MarkerClusterGroup({showCoverageOnHover: false});
+				cluster_groupSportObjectsJSON.addLayer(exp_SportObjectsJSON);
 				
 						//delete comment sign to show this layer on the map in the initial view.
-						//exp_buildingpolygonJSON.addTo(map);
+						//cluster_groupSportObjectsJSON.addTo(map);
 		var title = new L.Control();
 		title.onAdd = function (map) {
 			this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
@@ -67,14 +70,14 @@
 			return this._div;
 	    };
 	    title.update = function () {
-			this._div.innerHTML = '<h2>This is the title</h2>This is the subtitle'
+			this._div.innerHTML = '<h2>Petrogradskaya Research</h2>Sport Objects'
 		};
 		title.addTo(map);
 	var baseMaps = {
-		'OpenWeatherMap Snow': basemap_0
+		'OSM Black & White': basemap_0
 	};
-	L.control.layers(baseMaps,{"buildingpolygon": exp_buildingpolygonJSON},{collapsed:false}).addTo(map);
-		map.fitBounds(feature_group.getBounds());
+	L.control.layers(baseMaps,{"SportObjects": cluster_groupSportObjectsJSON},{collapsed:false}).addTo(map);
+	L.control.scale({options: {position: 'bottomleft',maxWidth: 100,metric: true,imperial: false,updateWhenIdle: false}}).addTo(map);
 	</script>
 </body>
 </html>
